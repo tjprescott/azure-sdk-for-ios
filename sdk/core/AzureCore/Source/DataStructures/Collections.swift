@@ -212,6 +212,10 @@ public class PagedCollection<SingleElement: Codable> {
         try update(with: data)
     }
 
+    @inlinable public func map<T>(_ transform: (SingleElement) throws -> T) rethrows -> [T]? {
+        return try items?.compactMap(transform)
+    }
+
     // MARK: Public Methods
 
     /// Retrieves the next page of results asynchronously.

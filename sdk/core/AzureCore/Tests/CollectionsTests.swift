@@ -54,6 +54,45 @@ class CollectionsTests: XCTestCase {
         }
     }
 
+    /// Test that authors can transform a generated PagedCollection into a custom one.
+    func test_PagedCollection_WillTransform() {
+        let client = TestPageableClient(
+            endpoint: URL(string: "http://www.microsoft.com")!,
+            transport: URLSessionTransport(),
+            policies: [
+                UserAgentPolicy(sdkName: "Test", sdkVersion: "1.0")
+            ],
+            logger: ClientLoggers.default(),
+            options: TestClientOptions()
+        )
+        let request = try! HTTPRequest(method: .get, url: "test")
+
+        // simulate data received
+        let data = load(resource: "pagedthings1", withExtension: "json")
+        let jsonObject = try! JSONSerialization.jsonObject(with: data)
+        let jsonData = try! JSONSerialization.data(withJSONObject: jsonObject)
+        let codingKeys = PagedCodingKeys()
+        var generatedPaged = try! PagedCollection<JsonTestItem>(
+            client: client,
+            request: request,
+            context: PipelineContext(),
+            data: jsonData,
+            codingKeys: codingKeys
+        )
+        let test = generatedPaged.map { $0.id }
+//        // test basics
+//        XCTAssertEqual(paged.items!.count, 3)
+//        XCTAssertGreaterThanOrEqual(paged.underestimatedCount, 3)
+//        XCTAssertEqual(paged.continuationToken, "token")
+//        XCTAssertEqual(paged.pageItems?.count, 3)
+//
+//        // test default continuationUrl
+//        let requestUrl = URL(string: "www.requestUrl.com")?
+//            .appendingQueryParameters(RequestParameters((.query, "ref", "123", .encode)))!
+//        let continuationUrl = client.continuationUrl(forRequestUrl: requestUrl!, withContinuationToken: "testToken")!
+//        XCTAssertEqual(continuationUrl.absoluteString, "\(requestUrl!.absoluteString)&marker=testToken")
+    }
+
     /// Test that authors can simply use the default PagedCodingKeys if the service fits the Azure standard.
     func test_PagedCollection_WithDefaultCodingKeys_Inits() {
         let client = TestPageableClient(
