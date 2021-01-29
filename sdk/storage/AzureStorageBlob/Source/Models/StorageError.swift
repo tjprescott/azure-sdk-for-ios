@@ -28,7 +28,7 @@ import AzureCore
 import Foundation
 
 /// Structure containing data about a blob or blob snapshot.
-public final class StorageError: XMLModel {
+public final class StorageError: XMLModel, Error {
     /// The error code
     public let code: String
     /// The error message

@@ -387,6 +387,9 @@
       location = "group:examples"
       name = "Examples">
       <FileRef
+         location = "group:AzureSDKSmokeTest/AzureSDKSmokeTest.xcodeproj">
+      </FileRef>
+      <FileRef
          location = "group:AzureStorageBlobDemo/AzureStorageBlobDemo.xcodeproj">
       </FileRef>
       <FileRef

@@ -42,37 +42,6 @@ public struct LeaseAccessConditions: Codable, Equatable {
     }
 }
 
-/// Options for accessing a blob based on its modification date and/or eTag. If specified, the operation will be
-/// performed only if all the specified conditions are met.
-public struct ModifiedAccessConditions: Codable, Equatable {
-    /// Perform the operation only if the blob has been modified since the specified date.
-    public let ifModifiedSince: Rfc1123Date?
-    /// Perform the operation only if the blob has not been modified since the specified date.
-    public let ifUnmodifiedSince: Rfc1123Date?
-    /// Perform the operation only if the blob's `eTag` matches the value specified.
-    public internal(set) var ifMatch: String?
-    /// Perform the operation only if the blob's `eTag` does not match the value specified.
-    public let ifNoneMatch: String?
-
-    /// Initialize a `ModifiedAccessConditions` structure.
-    /// - Parameters:
-    ///   - ifModifiedSince: Perform the operation only if the blob has been modified since the specified date.
-    ///   - ifUnmodifiedSince: Perform the operation only if the blob has not been modified since the specified date.
-    ///   - ifMatch: Perform the operation only if the blob's `eTag` matches the value specified.
-    ///   - ifNoneMatch: Perform the operation only if the blob's `eTag` does not match the value specified.
-    public init(
-        ifModifiedSince: Date? = nil,
-        ifUnmodifiedSince: Date? = nil,
-        ifMatch: String? = nil,
-        ifNoneMatch: String? = nil
-    ) {
-        self.ifModifiedSince = Rfc1123Date(ifModifiedSince)
-        self.ifUnmodifiedSince = Rfc1123Date(ifUnmodifiedSince)
-        self.ifMatch = ifMatch
-        self.ifNoneMatch = ifNoneMatch
-    }
-}
-
 /// Options for working on a subset of data for a blob.
 public struct RangeOptions: Codable, Equatable {
     /// Start of byte range to use for downloading a section of the blob.

@@ -379,172 +379,598 @@ public final class BlobsOperations {
         return blobTransfer
     }
 
-    // TODO: set/get tags
+    /// Gets blob metadata.
+    /// - Parameters:
+    ///    - blob : The target blob name.
+    ///    - container: The container name containing the blob.
+    ///    - options: A list of options for the operation
+    ///    - completionHandler: A completion handler that receives a `[String: String]` dictionary of
+    ///    metadata on success.
+    public func getMetadata(
+        forBlob blob: String,
+        inContainer container: String,
+        withOptions options: GetBlobMetadataOptions? = nil,
+        completionHandler: @escaping HTTPResultHandler<[String: String]>
+    ) {
+        // Create request parameters
+        let params = RequestParameters(
+            (.path, "container", container, .encode),
+            (.path, "blob", blob, .encode),
+            (.uri, "endpoint", client.endpoint.absoluteString, .skipEncoding),
+            (.query, "comp", "metadata", .encode),
+            (.query, "snapshot", options?.snapshot, .encode),
+            (.query, "versionId", options?.versionId, .encode),
+            (.query, "timeout", options?.timeout, .encode),
+            (.header, HTTPHeader.accept, "application/xml", .encode),
+            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
+            (.header, HTTPHeader.clientRequestId, options?.clientRequestId, .encode)
+        )
 
-    // TODO: set/get metadata (needs tests)
+        // Construct request
+        let urlTemplate = "/{container}/{blob}"
+        guard let requestUrl = client.url(host: "{endpoint}", template: urlTemplate, params: params),
+            let request = try? HTTPRequest(method: .get, url: requestUrl, headers: params.headers) else {
+            client.options.logger.error("Failed to construct HTTP request.")
+            return
+        }
+        // Send request
+        let context = PipelineContext.of(keyValues: [
+            ContextKey.allowedStatusCodes.rawValue: [200] as AnyObject
+        ])
+        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
+        context.merge(with: options?.context)
+        client.request(request, context: context) { result, httpResponse in
+            let dispatchQueue = options?.dispatchQueue ?? self.client.commonOptions.dispatchQueue ?? DispatchQueue.main
+            guard let data = httpResponse?.data else {
+                let noDataError = AzureError.client("Response data expected but not found.")
+                dispatchQueue.async {
+                    completionHandler(.failure(noDataError), httpResponse)
+                }
+                return
+            }
+            switch result {
+            case .success:
+                guard let statusCode = httpResponse?.statusCode else {
+                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
+                    dispatchQueue.async {
+                        completionHandler(.failure(noStatusCodeError), httpResponse)
+                    }
+                    return
+                }
+                if [
+                    200
+                ].contains(statusCode) {
+                    do {
+                        let decoder = JSONDecoder()
+                        let decoded = try decoder.decode([String: String].self, from: data)
+                        dispatchQueue.async {
+                            completionHandler(.success(decoded), httpResponse)
+                        }
+                    } catch {
+                        dispatchQueue.async {
+                            completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                        }
+                    }
+                }
+            case let .failure(error):
+                dispatchQueue.async {
+                    completionHandler(.failure(error), httpResponse)
+                }
+            }
+        }
+    }
 
-//    /// Gets blob metadata.
-//    /// - Parameters:
-//    ///    - blob : The target blob name.
-//    ///    - container: The container name containing the blob.
-//    ///    - options: A list of options for the operation
-//    ///    - completionHandler: A completion handler that receives a `[String: String]` dictionary of metadata on success.
-//    public func getMetadata(
-//        forBlob blob: String,
-//        inContainer container: String,
-//        withOptions options: GetBlobMetadataOptions? = nil,
-//        completionHandler: @escaping HTTPResultHandler<[String: String]>
-//    ) {
-//        // Create request parameters
-//        let params = RequestParameters(
-//            (.path, "container", container, .encode),
-//            (.path, "blob", blob, .encode),
-//            (.uri, "endpoint", client.endpoint.absoluteString, .skipEncoding),
-//            (.query, "comp", "metadata", .encode),
-//            (.query, "snapshot", options?.snapshot, .encode),
-//            (.query, "versionId", options?.versionId, .encode),
-//            (.query, "timeout", options?.timeout, .encode),
-//            (.header, HTTPHeader.accept, "application/xml", .encode),
-//            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
-//            (.header, HTTPHeader.clientRequestId, options?.clientRequestId, .encode)
-//        )
-//
-//        // Construct request
-//        let urlTemplate = "/{container}/{blob}"
-//        guard let requestUrl = client.url(host: "{endpoint}", template: urlTemplate, params: params),
-//            let request = try? HTTPRequest(method: .get, url: requestUrl, headers: params.headers) else {
-//            client.options.logger.error("Failed to construct HTTP request.")
-//            return
-//        }
-//        // Send request
-//        let context = PipelineContext.of(keyValues: [
-//            ContextKey.allowedStatusCodes.rawValue: [200] as AnyObject
-//        ])
-//        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
-//        context.merge(with: options?.context)
-//        client.request(request, context: context) { result, httpResponse in
-//            let dispatchQueue = options?.dispatchQueue ?? self.client.commonOptions.dispatchQueue ?? DispatchQueue.main
-//            guard let data = httpResponse?.data else {
-//                let noDataError = AzureError.client("Response data expected but not found.")
-//                dispatchQueue.async {
-//                    completionHandler(.failure(noDataError), httpResponse)
-//                }
-//                return
-//            }
-//            switch result {
-//            case .success:
-//                guard let statusCode = httpResponse?.statusCode else {
-//                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
-//                    dispatchQueue.async {
-//                        completionHandler(.failure(noStatusCodeError), httpResponse)
-//                    }
-//                    return
-//                }
-//                if [
-//                    200
-//                ].contains(statusCode) {
-//                    do {
-//                        let decoder = JSONDecoder()
-//                        let decoded = try decoder.decode([String: String].self, from: data)
-//                        dispatchQueue.async {
-//                            completionHandler(.success(decoded), httpResponse)
-//                        }
-//                    } catch {
-//                        dispatchQueue.async {
-//                            completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
-//                        }
-//                    }
-//                }
-//            case let .failure(error):
-//                dispatchQueue.async {
-//                    completionHandler(.failure(error), httpResponse)
-//                }
-//            }
-//        }
-//    }
-//
-//    /// Sets blob metadata.
-//    /// - Parameters:
-//    ///    - metadata: The `[String: String]` metadata dictionary to set.
-//    ///    - blob : The target blob name.
-//    ///    - container: The container name containing the blob.
-//    ///    - options: A list of options for the operation
-//    ///    - completionHandler: A completion handler that receives a `[String: String]` dictionary of metadata on success.
-//    public func set(
-//        metadata: [String: String],
-//        forBlob blob: String,
-//        inContainer container: String,
-//        withOptions options: SetBlobMetadataOptions? = nil,
-//        completionHandler: @escaping HTTPResultHandler<[String: String]>
-//    ) {
-//        // Create request parameters
-//        let params = RequestParameters(
-//            (.path, "container", container, .encode),
-//            (.path, "blob", blob, .encode),
-//            (.uri, "endpoint", client.endpoint.absoluteString, .skipEncoding),
-//            (.query, "comp", "metadata", .encode),
-//            (.query, "timeout", options?.timeout, .encode),
-//            (.header, StorageHTTPHeader.metadata, metadata, .encode),
-//            (.header, HTTPHeader.accept, "application/xml", .encode),
-//            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
-//            (.header, HTTPHeader.clientRequestId, options?.clientRequestId, .encode)
-//        )
-//
-//        // Construct request
-//        let urlTemplate = "/{container}/{blob}"
-//        guard let requestUrl = client.url(host: "{endpoint}", template: urlTemplate, params: params),
-//            let request = try? HTTPRequest(method: .put, url: requestUrl, headers: params.headers) else {
-//            client.options.logger.error("Failed to construct HTTP request.")
-//            return
-//        }
-//        // Send request
-//        let context = PipelineContext.of(keyValues: [
-//            ContextKey.allowedStatusCodes.rawValue: [200] as AnyObject
-//        ])
-//        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
-//        context.merge(with: options?.context)
-//        client.request(request, context: context) { result, httpResponse in
-//            let dispatchQueue = options?.dispatchQueue ?? self.client.commonOptions.dispatchQueue ?? DispatchQueue.main
-//            guard let data = httpResponse?.data else {
-//                let noDataError = AzureError.client("Response data expected but not found.")
-//                dispatchQueue.async {
-//                    completionHandler(.failure(noDataError), httpResponse)
-//                }
-//                return
-//            }
-//            switch result {
-//            case .success:
-//                guard let statusCode = httpResponse?.statusCode else {
-//                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
-//                    dispatchQueue.async {
-//                        completionHandler(.failure(noStatusCodeError), httpResponse)
-//                    }
-//                    return
-//                }
-//                if [
-//                    200
-//                ].contains(statusCode) {
-//                    do {
-//                        let decoder = JSONDecoder()
-//                        let decoded = try decoder.decode([String: String].self, from: data)
-//                        dispatchQueue.async {
-//                            completionHandler(.success(decoded), httpResponse)
-//                        }
-//                    } catch {
-//                        dispatchQueue.async {
-//                            completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
-//                        }
-//                    }
-//                }
-//            case let .failure(error):
-//                dispatchQueue.async {
-//                    completionHandler(.failure(error), httpResponse)
-//                }
-//            }
-//        }
-//    }
+    /// Sets blob metadata.
+    /// - Parameters:
+    ///    - metadata: The `[String: String]` metadata dictionary to set.
+    ///    - blob : The target blob name.
+    ///    - container: The container name containing the blob.
+    ///    - options: A list of options for the operation
+    ///    - completionHandler: A completion handler that receives a `[String: String]` dictionary of
+    ///    metadata on success.
+    public func set(
+        metadata: [String: String],
+        forBlob blob: String,
+        inContainer container: String,
+        withOptions options: SetBlobMetadataOptions? = nil,
+        completionHandler: @escaping HTTPResultHandler<[String: String]>
+    ) {
+        // Create request parameters
+        let params = RequestParameters(
+            (.path, "container", container, .encode),
+            (.path, "blob", blob, .encode),
+            (.uri, "url", client.endpoint.absoluteString, .skipEncoding),
+            (.query, "comp", "metadata", .encode),
+            (.query, "timeout", options?.timeout, .encode),
+            (.header, StorageHTTPHeader.metadata, metadata, .encode),
+            (.header, HTTPHeader.accept, "application/xml", .encode),
+            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
+            (.header, HTTPHeader.clientRequestId, options?.clientRequestId, .encode),
+            (.header, StorageHTTPHeader.leaseId, options?.leaseAccessConditions?.leaseId, .encode),
+            (.header, StorageHTTPHeader.encryptionKey, options?.cpkInfo?.encryptionKey, .encode),
+            (.header, StorageHTTPHeader.encryptionKeySHA256, options?.cpkInfo?.encryptionKeySha256, .encode),
+            (.header, StorageHTTPHeader.encryptionAlgorithm, "AES256", .encode),
+            (.header, StorageHTTPHeader.encryptionScope, options?.cpkScopeInfo?.encryptionScope, .encode),
+            (.header, "If-Modified-Since", options?.modifiedAccessConditions?.ifModifiedSince, .encode),
+            (.header, "If-Unmodified-Since", options?.modifiedAccessConditions?.ifUnmodifiedSince, .encode),
+            (.header, "If-Match", options?.modifiedAccessConditions?.ifMatch, .encode),
+            (.header, "If-None-Match", options?.modifiedAccessConditions?.ifNoneMatch, .encode),
+            (.header, "x-ms-if-tags", options?.modifiedAccessConditions?.ifTags, .encode)
+        )
 
-    // TODO: set HTTP header properties
+        // Construct request
+        let urlTemplate = "/{container}/{blob}"
+        guard let requestUrl = client.url(host: "{endpoint}", template: urlTemplate, params: params),
+            let request = try? HTTPRequest(method: .put, url: requestUrl, headers: params.headers) else {
+            client.options.logger.error("Failed to construct HTTP request.")
+            return
+        }
+        // Send request
+        let context = PipelineContext.of(keyValues: [
+            ContextKey.allowedStatusCodes.rawValue: [200] as AnyObject
+        ])
+        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
+        context.merge(with: options?.context)
+        client.request(request, context: context) { result, httpResponse in
+            let dispatchQueue = options?.dispatchQueue ?? self.client.commonOptions.dispatchQueue ?? DispatchQueue.main
+            guard let data = httpResponse?.data else {
+                let noDataError = AzureError.client("Response data expected but not found.")
+                dispatchQueue.async {
+                    completionHandler(.failure(noDataError), httpResponse)
+                }
+                return
+            }
+            switch result {
+            case .success:
+                guard let statusCode = httpResponse?.statusCode else {
+                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
+                    dispatchQueue.async {
+                        completionHandler(.failure(noStatusCodeError), httpResponse)
+                    }
+                    return
+                }
+                if [
+                    200
+                ].contains(statusCode) {
+                    do {
+                        let decoder = JSONDecoder()
+                        let decoded = try decoder.decode([String: String].self, from: data)
+                        dispatchQueue.async {
+                            completionHandler(.success(decoded), httpResponse)
+                        }
+                    } catch {
+                        dispatchQueue.async {
+                            completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                        }
+                    }
+                }
+            case let .failure(error):
+                dispatchQueue.async {
+                    completionHandler(.failure(error), httpResponse)
+                }
+            }
+        }
+    }
 
-    // TODO: set access tier
+    /// Sets the access tier on a blob. The operation is allowed on a block blob in a blob storage account
+    /// (locally redundant storage only). A block blob's tier determines Hot/Cool/Archive storage type. This
+    /// operation does not update the blob's ETag.
+    /// - Parameters:
+    ///    - tier : Indicates the tier to be set on the blob.
+    ///    - options: A list of options for the operation
+    ///    - completionHandler: A completion handler that receives a status code on
+    ///     success.
+    public func set(
+        tier: AccessTier,
+        withOptions options: SetTierOptions? = nil,
+        completionHandler: @escaping HTTPResultHandler<Void>
+    ) {
+        let dispatchQueue = options?.dispatchQueue ?? client.commonOptions.dispatchQueue ?? DispatchQueue.main
+
+        // Create request parameters
+        let params = RequestParameters(
+            (.query, "snapshot", options?.snapshot, .encode),
+            (.query, "versionId", options?.versionId, .encode),
+            (.query, "timeout", options?.timeout, .encode),
+            (.header, "x-ms-access-tier", tier, .encode),
+            (.header, "x-ms-rehydrate-priority", options?.rehydratePriority, .encode),
+            (.header, "x-ms-client-request-id", options?.requestId, .encode),
+            (.uri, "url", client.endpoint.absoluteString, .skipEncoding),
+            (.query, "comp", "tier", .encode),
+            (.header, "x-ms-version", client.options.apiVersion, .encode),
+            (.header, "x-ms-lease-id", options?.leaseAccessConditions?.leaseId, .encode),
+            (.header, "x-ms-if-tags", options?.modifiedAccessConditions?.ifTags, .encode),
+            (.header, "Accept", "application/xml", .encode)
+        )
+
+        // Construct request
+        let urlTemplate = "/{containerName}/{blob}"
+        guard let requestUrl = client.url(host: "{url}", template: urlTemplate, params: params),
+            let request = try? HTTPRequest(method: .put, url: requestUrl, headers: params.headers) else {
+            client.options.logger.error("Failed to construct HTTP request.")
+            return
+        }
+
+        // Apply client-side validation
+        var validationErrors = [String]()
+        // Validate timeout
+        if let timeout = options?.timeout, timeout < 0 {
+            validationErrors.append("timeout: >= 0")
+        }
+        if !validationErrors.isEmpty {
+            dispatchQueue.async {
+                let error = AzureError.client("Validation Errors: \(validationErrors.joined(separator: ", "))")
+                completionHandler(.failure(error), nil)
+            }
+            return
+        }
+
+        // Send request
+        let context = PipelineContext.of(keyValues: [
+            ContextKey.allowedStatusCodes.rawValue: [200, 202] as AnyObject
+        ])
+        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
+        context.merge(with: options?.context)
+        client.request(request, context: context) { result, httpResponse in
+            guard let data = httpResponse?.data else {
+                let noDataError = AzureError.client("Response data expected but not found.")
+                dispatchQueue.async {
+                    completionHandler(.failure(noDataError), httpResponse)
+                }
+                return
+            }
+            switch result {
+            case .success:
+                guard let statusCode = httpResponse?.statusCode else {
+                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
+                    dispatchQueue.async {
+                        completionHandler(.failure(noStatusCodeError), httpResponse)
+                    }
+                    return
+                }
+                if [
+                    200
+                ].contains(statusCode) {
+                    dispatchQueue.async {
+                        completionHandler(.success(()), httpResponse)
+                    }
+                }
+                if [
+                    202
+                ].contains(statusCode) {
+                    dispatchQueue.async {
+                        completionHandler(.success(()), httpResponse)
+                    }
+                }
+            case .failure:
+                do {
+                    let decoder = JSONDecoder()
+                    let decoded = try decoder.decode(StorageError.self, from: data)
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.service("", decoded)), httpResponse)
+                    }
+                } catch {
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                    }
+                }
+            }
+        }
+    }
+
+    /// The Set HTTP Headers operation sets system properties on the blob
+    /// - Parameters:
+    ///    - httpHeaders: The `BlobHTTPHeaders` object to set.
+    ///    - options: A list of options for the operation
+    ///    - completionHandler: A completion handler that receives a status code on
+    ///     success.
+    public func set(
+        httpHeaders: BlobHTTPHeaders,
+        withOptions options: SetHTTPHeadersOptions? = nil,
+        completionHandler: @escaping HTTPResultHandler<Void>
+    ) {
+        let dispatchQueue = options?.dispatchQueue ?? client.commonOptions.dispatchQueue ?? DispatchQueue.main
+
+        // Create request parameters
+        let params = RequestParameters(
+            (.query, "timeout", options?.timeout, .encode),
+            (.header, HTTPHeader.clientRequestId, options?.requestId, .encode),
+            (.uri, "endpoint", client.endpoint.absoluteString, .skipEncoding),
+            (.query, "comp", "properties", .encode),
+            (.header, StorageHTTPHeader.blobCacheControl, httpHeaders.blobCacheControl, .encode),
+            (.header, StorageHTTPHeader.blobContentType, httpHeaders.blobContentType, .encode),
+            (.header, StorageHTTPHeader.blobContentMD5, httpHeaders.blobContentMD5, .encode),
+            (.header, StorageHTTPHeader.blobContentEncoding, httpHeaders.blobContentEncoding, .encode),
+            (.header, StorageHTTPHeader.blobContentLanguage, httpHeaders.blobContentLanguage, .encode),
+            (.header, StorageHTTPHeader.blobContentDisposition, httpHeaders.blobContentDisposition, .encode),
+            (.header, StorageHTTPHeader.leaseId, options?.leaseAccessConditions?.leaseId, .encode),
+            (.header, "If-Modified-Since", options?.modifiedAccessConditions?.ifModifiedSince, .encode),
+            (.header, "If-Unmodified-Since", options?.modifiedAccessConditions?.ifUnmodifiedSince, .encode),
+            (.header, "If-Match", options?.modifiedAccessConditions?.ifMatch, .encode),
+            (.header, "If-None-Match", options?.modifiedAccessConditions?.ifNoneMatch, .encode),
+            (.header, "x-ms-if-tags", options?.modifiedAccessConditions?.ifTags, .encode),
+            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
+            (.header, HTTPHeader.accept, "application/xml", .encode)
+        )
+
+        // Construct request
+        let urlTemplate = "/{containerName}/{blob}"
+        guard let requestUrl = client.url(host: "{url}", template: urlTemplate, params: params),
+            let request = try? HTTPRequest(method: .put, url: requestUrl, headers: params.headers) else {
+            client.options.logger.error("Failed to construct HTTP request.")
+            return
+        }
+
+        // Apply client-side validation
+        var validationErrors = [String]()
+        // Validate timeout
+        if let timeout = options?.timeout, timeout < 0 {
+            validationErrors.append("timeout: >= 0")
+        }
+        if !validationErrors.isEmpty {
+            dispatchQueue.async {
+                let error = AzureError.client("Validation Errors: \(validationErrors.joined(separator: ", "))")
+                completionHandler(.failure(error), nil)
+            }
+            return
+        }
+
+        // Send request
+        let context = PipelineContext.of(keyValues: [
+            ContextKey.allowedStatusCodes.rawValue: [200] as AnyObject
+        ])
+        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
+        context.merge(with: options?.context)
+        client.request(request, context: context) { result, httpResponse in
+            guard let data = httpResponse?.data else {
+                let noDataError = AzureError.client("Response data expected but not found.")
+                dispatchQueue.async {
+                    completionHandler(.failure(noDataError), httpResponse)
+                }
+                return
+            }
+            switch result {
+            case .success:
+                guard let statusCode = httpResponse?.statusCode else {
+                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
+                    dispatchQueue.async {
+                        completionHandler(.failure(noStatusCodeError), httpResponse)
+                    }
+                    return
+                }
+                if [
+                    200
+                ].contains(statusCode) {
+                    dispatchQueue.async {
+                        completionHandler(
+                            .success(()),
+                            httpResponse
+                        )
+                    }
+                }
+            case .failure:
+                do {
+                    let decoder = JSONDecoder()
+                    let decoded = try decoder.decode(StorageError.self, from: data)
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.service("", decoded)), httpResponse)
+                    }
+                } catch {
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                    }
+                }
+            }
+        }
+    }
+
+    /// The Get Tags operation enables users to get the tags associated with a blob.
+    /// - Parameters:
+    ///    - options: A list of options for the operation
+    ///    - completionHandler: A completion handler that receives a status code on
+    ///     success.
+    public func getTags(
+        withOptions options: GetTagsOptions? = nil,
+        completionHandler: @escaping HTTPResultHandler<[String: String]>
+    ) {
+        let dispatchQueue = options?.dispatchQueue ?? client.commonOptions.dispatchQueue ?? DispatchQueue.main
+
+        // Create request parameters
+        let params = RequestParameters(
+            (.query, "timeout", options?.timeout, .encode),
+            (.header, HTTPHeader.clientRequestId, options?.requestId, .encode),
+            (.query, "snapshot", options?.snapshot, .encode),
+            (.query, "versionId", options?.versionId, .encode),
+            (.uri, "endpoint", client.endpoint.absoluteString, .skipEncoding),
+            (.query, "comp", "tags", .encode),
+            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
+            (.header, "x-ms-if-tags", options?.modifiedAccessConditions?.ifTags, .encode),
+            (.header, "x-ms-lease-id", options?.leaseAccessConditions?.leaseId, .encode),
+            (.header, HTTPHeader.accept, "application/xml", .encode)
+        )
+
+        // Construct request
+        let urlTemplate = "/{containerName}/{blob}"
+        guard let requestUrl = client.url(host: "{url}", template: urlTemplate, params: params),
+            let request = try? HTTPRequest(method: .get, url: requestUrl, headers: params.headers) else {
+            client.options.logger.error("Failed to construct HTTP request.")
+            return
+        }
+
+        // Apply client-side validation
+        var validationErrors = [String]()
+        // Validate timeout
+        if let timeout = options?.timeout, timeout < 0 {
+            validationErrors.append("timeout: >= 0")
+        }
+        if !validationErrors.isEmpty {
+            dispatchQueue.async {
+                let error = AzureError.client("Validation Errors: \(validationErrors.joined(separator: ", "))")
+                completionHandler(.failure(error), nil)
+            }
+            return
+        }
+
+        // Send request
+        let context = PipelineContext.of(keyValues: [
+            ContextKey.allowedStatusCodes.rawValue: [200] as AnyObject
+        ])
+        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
+        context.merge(with: options?.context)
+        client.request(request, context: context) { result, httpResponse in
+            guard let data = httpResponse?.data else {
+                let noDataError = AzureError.client("Response data expected but not found.")
+                dispatchQueue.async {
+                    completionHandler(.failure(noDataError), httpResponse)
+                }
+                return
+            }
+            switch result {
+            case .success:
+                guard let statusCode = httpResponse?.statusCode else {
+                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
+                    dispatchQueue.async {
+                        completionHandler(.failure(noStatusCodeError), httpResponse)
+                    }
+                    return
+                }
+                if [
+                    200
+                ].contains(statusCode) {
+                    do {
+                        let decoder = JSONDecoder()
+                        let decoded = try decoder.decode([String: String].self, from: data)
+                        dispatchQueue.async {
+                            completionHandler(.success(decoded), httpResponse)
+                        }
+                    } catch {
+                        dispatchQueue.async {
+                            completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                        }
+                    }
+                }
+            case .failure:
+                do {
+                    let decoder = JSONDecoder()
+                    let decoded = try decoder.decode(StorageError.self, from: data)
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.service("", decoded)), httpResponse)
+                    }
+                } catch {
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                    }
+                }
+            }
+        }
+    }
+
+    /// The Set Tags operation enables users to set tags on a blob.
+    /// - Parameters:
+    ///    - tags : A `[String: String]` dictionary of blob tags.
+    ///    - options: A list of options for the operation
+    ///    - completionHandler: A completion handler that receives a status code on
+    ///     success.
+    public func set(
+        tags: [String: String]?,
+        withOptions options: SetTagsOptions? = nil,
+        completionHandler: @escaping HTTPResultHandler<Void>
+    ) {
+        let dispatchQueue = options?.dispatchQueue ?? client.commonOptions.dispatchQueue ?? DispatchQueue.main
+
+        // Create request parameters
+        let params = RequestParameters(
+            (.query, "timeout", options?.timeout, .encode),
+            (.query, "versionId", options?.versionId, .encode),
+            (.header, "Content-MD5", options?.transactionalContentMD5, .encode),
+            (.header, StorageHTTPHeader.contentCRC64, options?.transactionalContentCrc64, .encode),
+            (.header, HTTPHeader.clientRequestId, options?.clientRequestId, .encode),
+            (.uri, "endpoint", client.endpoint.absoluteString, .skipEncoding),
+            (.query, "comp", "tags", .encode),
+            (.header, HTTPHeader.apiVersion, client.options.apiVersion, .encode),
+            (.header, "x-ms-if-tags", options?.modifiedAccessConditions?.ifTags, .encode),
+            (.header, "x-ms-lease-id", options?.leaseAccessConditions?.leaseId, .encode),
+            (.header, HTTPHeader.contentType, "application/xml", .encode),
+            (.header, HTTPHeader.accept, "application/xml", .encode)
+        )
+
+        // Construct request
+        var requestBody: Data?
+        if tags != nil {
+            guard let encodedRequestBody = try? JSONEncoder().encode(tags) else {
+                client.options.logger.error("Failed to encode request body as json.")
+                return
+            }
+            requestBody = encodedRequestBody
+        }
+        let urlTemplate = "/{containerName}/{blob}"
+        guard let requestUrl = client.url(host: "{url}", template: urlTemplate, params: params),
+            let request = try? HTTPRequest(method: .put, url: requestUrl, headers: params.headers, data: requestBody)
+        else {
+            client.options.logger.error("Failed to construct HTTP request.")
+            return
+        }
+
+        // Apply client-side validation
+        var validationErrors = [String]()
+        // Validate timeout
+        if let timeout = options?.timeout, timeout < 0 {
+            validationErrors.append("timeout: >= 0")
+        }
+        if !validationErrors.isEmpty {
+            dispatchQueue.async {
+                let error = AzureError.client("Validation Errors: \(validationErrors.joined(separator: ", "))")
+                completionHandler(.failure(error), nil)
+            }
+            return
+        }
+
+        // Send request
+        let context = PipelineContext.of(keyValues: [
+            ContextKey.allowedStatusCodes.rawValue: [204] as AnyObject
+        ])
+        context.add(cancellationToken: options?.cancellationToken, applying: client.options)
+        context.merge(with: options?.context)
+        client.request(request, context: context) { result, httpResponse in
+            guard let data = httpResponse?.data else {
+                let noDataError = AzureError.client("Response data expected but not found.")
+                dispatchQueue.async {
+                    completionHandler(.failure(noDataError), httpResponse)
+                }
+                return
+            }
+            switch result {
+            case .success:
+                guard let statusCode = httpResponse?.statusCode else {
+                    let noStatusCodeError = AzureError.client("Expected a status code in response but didn't find one.")
+                    dispatchQueue.async {
+                        completionHandler(.failure(noStatusCodeError), httpResponse)
+                    }
+                    return
+                }
+                if [
+                    204
+                ].contains(statusCode) {
+                    dispatchQueue.async {
+                        completionHandler(
+                            .success(()),
+                            httpResponse
+                        )
+                    }
+                }
+            case .failure:
+                do {
+                    let decoder = JSONDecoder()
+                    let decoded = try decoder.decode(StorageError.self, from: data)
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.service("", decoded)), httpResponse)
+                    }
+                } catch {
+                    dispatchQueue.async {
+                        completionHandler(.failure(AzureError.client("Decoding error.", error)), httpResponse)
+                    }
+                }
+            }
+        }
+    }
 }

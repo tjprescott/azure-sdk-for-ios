@@ -122,3 +122,48 @@ public enum PublicAccessType: String, Codable, RequestStringConvertible {
         return rawValue
     }
 }
+
+/// If an object is in rehydrate pending state then this header is returned with priority of rehydrate. Valid values are High and Standard.
+public enum RehydratePriority: RequestStringConvertible, Codable, Equatable {
+    /// Custom value for unrecognized enum values
+    case custom(String)
+
+    case high
+
+    case standard
+
+    public var requestString: String {
+        switch self {
+        case let .custom(val):
+            return val
+        case .high:
+            return "High"
+        case .standard:
+            return "Standard"
+        }
+    }
+
+    public init(_ val: String) {
+        switch val.lowercased() {
+        case "high":
+            self = .high
+        case "standard":
+            self = .standard
+        default:
+            self = .custom(val)
+        }
+    }
+
+    // MARK: Codable
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        self.init(value)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(requestString)
+    }
+}

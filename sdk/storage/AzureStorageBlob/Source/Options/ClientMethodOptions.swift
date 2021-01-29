@@ -122,8 +122,8 @@ public struct DeleteContainerOptions: RequestOptions {
     /// - The specified lease ID matches that of the container.
     public let leaseAccessConditions: LeaseAccessConditions?
 
-    /// Options for accessing a container based on its modification date and/or eTag. If specified, the operation will be
-    /// performed only if all the specified conditions are met.
+    /// Options for accessing a container based on its modification date and/or eTag. If specified, the operation
+    /// will be performed only if all the specified conditions are met.
     public internal(set) var modifiedAccessConditions: ModifiedAccessConditions?
 
     /// Initialize a `DeleteContainerOptions` structure.
@@ -134,8 +134,8 @@ public struct DeleteContainerOptions: RequestOptions {
     ///   - dispatchQueue: A dispatch queue on which to call the completion handler. Defaults to `DispatchQueue.main`.
     ///   - context: A `PipelineContext` object to associate with the request.
     ///   - timeout: Request timeout in seconds.
-    ///   - leaseAccessConditions: Options for accessing a container based on the condition of a lease. If specified, the
-    ///     operation will be performed only if both of the following conditions are met:
+    ///   - leaseAccessConditions: Options for accessing a container based on the condition of a lease.
+    ///   If specified, the operation will be performed only if both of the following conditions are met:
     ///     - The container's lease is currently active.
     ///     - The specified lease ID matches that of the container.
     ///   - modifiedAccessConditions: Options for accessing a container based on its modification date and/or eTag. If
@@ -176,15 +176,16 @@ public struct GetContainerOptions: RequestOptions {
     /// Request timeout in seconds.
     public let timeout: TimeInterval?
 
-    /// Options for accessing a container based on the condition of a lease. If specified, the operation will be performed
-    /// only if both of the following conditions are met:
+    /// Options for accessing a container based on the condition of a lease. If specified, the operation will be
+    /// performed only if both of the following conditions are met:
     /// - The container's lease is currently active.
     /// - The specified lease ID matches that of the container.
     public let leaseAccessConditions: LeaseAccessConditions?
 
     /// Initialize a `GetConainerOptions` structure.
     /// - Parameters:
-    ///   - clientRequestId: A client-generated, opaque value with 1KB character limit that is recorded in analytics logs.
+    ///   - clientRequestId: A client-generated, opaque value with 1KB character limit that is recorded in
+    ///   analytics logs.
     ///   - cancellationToken: A token used to make a best-effort attempt at canceling a request.
     ///   - dispatchQueue: A dispatch queue on which to call the completion handler. Defaults to `DispatchQueue.main`.
     ///   - context: A `PipelineContext` object to associate with the request.
@@ -224,8 +225,8 @@ public struct CreateContainerOptions: RequestOptions {
     /// Request timeout in seconds.
     public let timeout: TimeInterval?
 
-    /// Specifies user-defined name-value pairs associated with the container. Note that beginning with version 2009-09-19, metadata names must
-    /// adhere to the naming rules for C# identifiers.
+    /// Specifies user-defined name-value pairs associated with the container. Note that beginning with
+    /// version 2009-09-19, metadata names must adhere to the naming rules for C# identifiers.
     public let metadata: [String: String]?
 
     /// Specifies whether data in the container may be accessed publicly and the level of access.
@@ -236,13 +237,14 @@ public struct CreateContainerOptions: RequestOptions {
 
     /// Initialize an `CreateConainerOptions` structure.
     /// - Parameters:
-    ///   - clientRequestId: A client-generated, opaque value with 1KB character limit that is recorded in analytics logs.
+    ///   - clientRequestId: A client-generated, opaque value with 1KB character limit that is recorded
+    ///   in analytics logs.
     ///   - cancellationToken: A token used to make a best-effort attempt at canceling a request.
     ///   - dispatchQueue: A dispatch queue on which to call the completion handler. Defaults to `DispatchQueue.main`.
     ///   - context: A `PipelineContext` object to associate with the request.
     ///   - timeout: Request timeout in seconds.
-    ///   - metadata: Specifies user-defined name-value pairs associated with the container. Note that beginning with version
-    ///   2009-09-19, metadata names must adhere to the naming rules for C# identifiers.
+    ///   - metadata: Specifies user-defined name-value pairs associated with the container. Note that
+    ///   beginning with version 2009-09-19, metadata names must adhere to the naming rules for C# identifiers.
     ///   - access: Specifies whether data in the container may be accessed publicly and the level of access.
     ///   - containerCpkScopeInfo: Specifies the default encryption scope policy for the container
     public init(
@@ -422,7 +424,7 @@ public struct DownloadBlobOptions: RequestOptions, Codable, Equatable {
 
     /// Options for accessing a blob based on its modification date and/or eTag. If specified, the operation will be
     /// performed only if all the specified conditions are met.
-    public internal(set) var modifiedAccessConditions: ModifiedAccessConditions?
+    public var modifiedAccessConditions: ModifiedAccessConditions?
 
     /// Blob encryption options.
     public let encryptionOptions: EncryptionOptions?
@@ -635,7 +637,8 @@ public struct GetBlobMetadataOptions: RequestOptions {
     ///   - dispatchQueue: A dispatch queue on which to call the completion handler. Defaults to `DispatchQueue.main`.
     ///   - context: A `PipelineContext` object to associate with the request.
     ///   - snapshot: The snapshot parameter is a value that, when present, specifies the blob snapshot to retrieve.
-    ///   - versionId:The version id parameter is a value that, when present, specifies the version of the blob to operate on.
+    ///   - versionId:The version id parameter is a value that, when present, specifies the version of the blob to
+    ///   operate on.
     ///   - timeout: The timeout parameter is expressed in seconds.
     public init(
         clientRequestId: String? = nil,
@@ -673,25 +676,49 @@ public struct SetBlobMetadataOptions: RequestOptions {
     /// The timeout parameter is expressed in seconds.
     public let timeout: TimeInterval?
 
+    /// Parameter group
+    public let leaseAccessConditions: LeaseAccessConditions?
+
+    /// Parameter group
+    public let cpkInfo: CpkInfo?
+
+    /// Parameter group
+    public let cpkScopeInfo: CpkScopeInfo?
+
+    /// Parameter group
+    public let modifiedAccessConditions: ModifiedAccessConditions?
+
     /// Initialize a `SetBlobMetadataOptions` structure.
     /// - Parameters:
+    ///   - timeout: The timeout parameter is expressed in seconds.
+    ///   - leaseAccessConditions: Parameter group
+    ///   - cpkInfo: Parameter group
+    ///   - cpkScopeInfo: Parameter group
+    ///   - modifiedAccessConditions: Parameter group
     ///   - clientRequestId: A client-generated, opaque value with 1KB character limit that is recorded in analytics
     ///     logs.
     ///   - cancellationToken: A token used to make a best-effort attempt at canceling a request.
     ///   - dispatchQueue: A dispatch queue on which to call the completion handler. Defaults to `DispatchQueue.main`.
     ///   - context: A `PipelineContext` object to associate with the request.
-    ///   - timeout: The timeout parameter is expressed in seconds.
     public init(
+        timeout: TimeInterval? = nil,
+        leaseAccessConditions: LeaseAccessConditions? = nil,
+        cpkInfo: CpkInfo? = nil,
+        cpkScopeInfo: CpkScopeInfo? = nil,
+        modifiedAccessConditions: ModifiedAccessConditions? = nil,
         clientRequestId: String? = nil,
         cancellationToken: CancellationToken? = nil,
         dispatchQueue: DispatchQueue? = nil,
-        context: PipelineContext? = nil,
-        timeout: TimeInterval? = nil
+        context: PipelineContext? = nil
     ) {
         self.clientRequestId = clientRequestId
         self.cancellationToken = cancellationToken
         self.dispatchQueue = dispatchQueue
         self.context = context
         self.timeout = timeout
+        self.leaseAccessConditions = leaseAccessConditions
+        self.cpkInfo = cpkInfo
+        self.cpkScopeInfo = cpkScopeInfo
+        self.modifiedAccessConditions = modifiedAccessConditions
     }
 }
