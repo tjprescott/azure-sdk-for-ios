@@ -27,7 +27,6 @@
 import Foundation
 
 import AzureCore
-import AzureIdentity
 import AzureStorageBlob
 
 class BlobListViewModel {

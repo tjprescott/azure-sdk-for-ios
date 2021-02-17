@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 import AzureCore
 import Foundation
+
 import MSAL
 
 public typealias MSALResultCompletionHandler = (MSALResult?, Error?) -> Void

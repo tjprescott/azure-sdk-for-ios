@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------
 
 import AzureCore
-import AzureIdentity
 import AzureStorageBlob
 import Foundation
 

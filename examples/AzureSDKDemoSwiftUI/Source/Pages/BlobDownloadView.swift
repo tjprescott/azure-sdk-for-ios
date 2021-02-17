@@ -28,7 +28,6 @@ import SwiftUI
 import UIKit
 
 import AzureCore
-import AzureIdentity
 import AzureStorageBlob
 
 import AVKit
