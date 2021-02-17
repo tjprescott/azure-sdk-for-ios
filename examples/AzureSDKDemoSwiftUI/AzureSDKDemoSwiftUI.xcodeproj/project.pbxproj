@@ -11,6 +11,8 @@
 		0A884FB725DDD62900E0EF10 /* AzureCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0A884FB525DDD62900E0EF10 /* AzureCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0A884FBA25DDD63700E0EF10 /* AzureStorageBlob.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A884FB925DDD63700E0EF10 /* AzureStorageBlob.framework */; };
 		0A884FBB25DDD63700E0EF10 /* AzureStorageBlob.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0A884FB925DDD63700E0EF10 /* AzureStorageBlob.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0AC114C625DDDD3100EEABA6 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = 0AC114C525DDDD3100EEABA6 /* Podfile */; };
+		0AC114C825DDDD3E00EEABA6 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AC114C725DDDD3E00EEABA6 /* Package.swift */; };
 		6E2DA6E09DEFB5FD1D0AB61C /* Pods_AzureSDKDemoSwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4CC81A25C4A199FD88DE800 /* Pods_AzureSDKDemoSwiftUI.framework */; };
 		883AEE5725BF8B6800E21497 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883AEE5625BF8B6800E21497 /* SceneDelegate.swift */; };
 		883AEE5925BF8B6800E21497 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883AEE5825BF8B6800E21497 /* ContentView.swift */; };
@@ -41,7 +43,9 @@
 /* Begin PBXFileReference section */
 		0A884FB525DDD62900E0EF10 /* AzureCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AzureCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A884FB925DDD63700E0EF10 /* AzureStorageBlob.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AzureStorageBlob.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		555CE7932059BAD8EEB00F4B /* Pods-AzureSDKDemoSwiftUI.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AzureSDKDemoSwiftUI.release.xcconfig"; path = "Target Support Files/Pods-AzureSDKDemoSwiftUI/Pods-AzureSDKDemoSwiftUI.release.xcconfig"; sourceTree = "<group>"; };
+		0AC114C525DDDD3100EEABA6 /* Podfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		0AC114C725DDDD3E00EEABA6 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		555CE7932059BAD8EEB00F4B /* Pods-AzureSDKDemoSwiftUI.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AzureSDKDemoSwiftUI.release.xcconfig"; path = "../examples/AzureSDKDemoSwiftUI/Pods/Target Support Files/Pods-AzureSDKDemoSwiftUI/Pods-AzureSDKDemoSwiftUI.release.xcconfig"; sourceTree = "<group>"; };
 		883AEE5125BF8B6800E21497 /* AzureSDKDemoSwiftUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AzureSDKDemoSwiftUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		883AEE5625BF8B6800E21497 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		883AEE5825BF8B6800E21497 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -53,7 +57,7 @@
 		88DF478625C0CD0700DEB50A /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		88DF478A25C0D1AB00DEB50A /* BlobDownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobDownloadView.swift; sourceTree = "<group>"; };
 		88DF478D25C0D1C900DEB50A /* MediaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaView.swift; sourceTree = "<group>"; };
-		BFFB0E63ACFE5B733C0AA991 /* Pods-AzureSDKDemoSwiftUI.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AzureSDKDemoSwiftUI.debug.xcconfig"; path = "Target Support Files/Pods-AzureSDKDemoSwiftUI/Pods-AzureSDKDemoSwiftUI.debug.xcconfig"; sourceTree = "<group>"; };
+		BFFB0E63ACFE5B733C0AA991 /* Pods-AzureSDKDemoSwiftUI.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AzureSDKDemoSwiftUI.debug.xcconfig"; path = "../examples/AzureSDKDemoSwiftUI/Pods/Target Support Files/Pods-AzureSDKDemoSwiftUI/Pods-AzureSDKDemoSwiftUI.debug.xcconfig"; sourceTree = "<group>"; };
 		C4CC81A25C4A199FD88DE800 /* Pods_AzureSDKDemoSwiftUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AzureSDKDemoSwiftUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -84,6 +88,8 @@
 		883AEE4825BF8B6800E21497 = {
 			isa = PBXGroup;
 			children = (
+				0AC114C725DDDD3E00EEABA6 /* Package.swift */,
+				0AC114C525DDDD3100EEABA6 /* Podfile */,
 				883AEE5325BF8B6800E21497 /* Source */,
 				883AEE5225BF8B6800E21497 /* Products */,
 				1D765692B51BF981E3B5D0AD /* Pods */,
@@ -212,6 +218,7 @@
 			files = (
 				883AEE6125BF8B6A00E21497 /* LaunchScreen.storyboard in Resources */,
 				883AEE5E25BF8B6A00E21497 /* Preview Assets.xcassets in Resources */,
+				0AC114C625DDDD3100EEABA6 /* Podfile in Resources */,
 				883AEE5B25BF8B6A00E21497 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -268,6 +275,7 @@
 				88DF478725C0CD0700DEB50A /* Common.swift in Sources */,
 				88DF478E25C0D1C900DEB50A /* MediaView.swift in Sources */,
 				8841071225C2199C003967A4 /* BlobListObservable.swift in Sources */,
+				0AC114C825DDDD3E00EEABA6 /* Package.swift in Sources */,
 				883AEE5725BF8B6800E21497 /* SceneDelegate.swift in Sources */,
 				883AEE5925BF8B6800E21497 /* ContentView.swift in Sources */,
 				88DF478B25C0D1AB00DEB50A /* BlobDownloadView.swift in Sources */,
